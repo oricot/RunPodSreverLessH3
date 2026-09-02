@@ -4,12 +4,21 @@
 # 11 à 15 minutes au tarif GPU, contre 2 à 3 minutes ici. L'usage visé est le TIR
 # ISOLÉ ; les lots et les chaînes de maillons restent sur la carte à l'heure.
 #
-# LES POIDS SONT DANS L'IMAGE, PAS SUR UN VOLUME. C'est ce qui supprime à la fois
-# le loyer du volume et sa relecture facturée à chaque réveil : le téléchargement
-# d'une image n'est pas facturé (état « Initializing » chez le loueur), et c'est
-# le loueur qui les descend sur son propre réseau — rien ne part d'ici.
+# IMAGE DE PLOMBERIE — SANS LES POIDS, ET C'EST DÉLIBÉRÉ (02/09).
 #
-# 44,4 Go pour cinq fichiers, sous la limite documentée de 80 Go.
+# La version qui les embarquait a été coupée par le constructeur du loueur :
+# « Build exceeded maximum time limit of 1800 seconds ». Le premier fichier, 21 Go,
+# n'avait pas fini en vingt-six minutes — moins de 14 Mo/s depuis Hugging Face,
+# contre 253 Mo/s mesurés depuis une carte louée le 31/08. Il en restait quatre.
+#
+# Celle-ci se construit en quatre minutes et sert à VÉRIFIER LA PLOMBERIE : que le
+# travailleur démarre, que notre outil de tirage lui parle, et surtout la seule
+# inconnue du montage — est-ce qu'un mp4 revient dans la réponse, ou seulement des
+# images. Aucun de ces trois points ne demande de poids.
+#
+# Les cinq téléchargements sont gardés plus bas, en commentaire. Ils reviendront
+# par un volume réseau ou par une image construite ailleurs, selon ce qu'Olivier
+# tranche — les deux voies sont chiffrées dans notes/serverless-runpod-cadrage.md.
 #
 # PAS DE extra_model_paths.yaml : le fichier livré avec le travailleur ne déclare
 # ni diffusion_models ni text_encoders, mais il ne sert qu'aux poids montés depuis
@@ -42,34 +51,34 @@ ARG MMX=https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main
 ARG FORMAT=fp8_scaled
 
 # Le transformeur — 20,96 Go
-RUN comfy model download \
-      --url ${MMX}/diffusion_models/minimax_h3_ref2va_pruned_${FORMAT}.safetensors \
-      --relative-path models/diffusion_models \
-      --filename minimax_h3_ref2va_pruned_${FORMAT}.safetensors
+# RUN comfy model download \
+#       --url ${MMX}/diffusion_models/minimax_h3_ref2va_pruned_${FORMAT}.safetensors \
+#       --relative-path models/diffusion_models \
+#       --filename minimax_h3_ref2va_pruned_${FORMAT}.safetensors
 
 # L'encodeur de texte — 15,69 Go
-RUN comfy model download \
-      --url ${MMX}/text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors \
-      --relative-path models/text_encoders \
-      --filename qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors
+# RUN comfy model download \
+#       --url ${MMX}/text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors \
+#       --relative-path models/text_encoders \
+#       --filename qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors
 
 # Le décodeur d'image — 5,21 Go
-RUN comfy model download \
-      --url ${MMX}/vae/minimax_h3_video_vae_fp16.safetensors \
-      --relative-path models/vae \
-      --filename minimax_h3_video_vae_fp16.safetensors
+# RUN comfy model download \
+#       --url ${MMX}/vae/minimax_h3_video_vae_fp16.safetensors \
+#       --relative-path models/vae \
+#       --filename minimax_h3_video_vae_fp16.safetensors
 
 # Le module d'accélération à quatre pas — 1,96 Go
-RUN comfy model download \
-      --url ${MMX}/loras/minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors \
-      --relative-path models/loras \
-      --filename minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors
+# RUN comfy model download \
+#       --url ${MMX}/loras/minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors \
+#       --relative-path models/loras \
+#       --filename minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors
 
 # LE DÉCODEUR AUDIO EST OBLIGATOIRE, MÊME MUET — 0,61 Go. Le nœud à références le
 # réclame en entrée qu'on veuille du son ou non ; il rend aussi la bande sonore du
 # plan. C'est écrit dans l'installeur de la carte louée, et ça vaut ici à
 # l'identique (tools/pod/installer.sh:400-406).
-RUN comfy model download \
-      --url ${MMX}/vae/minimax_h3_audio_vae_fp32.safetensors \
-      --relative-path models/vae \
-      --filename minimax_h3_audio_vae_fp32.safetensors
+# RUN comfy model download \
+#       --url ${MMX}/vae/minimax_h3_audio_vae_fp32.safetensors \
+#       --relative-path models/vae \
+#       --filename minimax_h3_audio_vae_fp32.safetensors
